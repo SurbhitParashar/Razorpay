@@ -1,0 +1,60 @@
+[project]
+name = "recoverai"
+version = "0.1.0"
+description = "AI-powered revenue recovery agent for merchants"
+readme = "README.md"
+authors = [
+    { name = "SurbhitParashar", email = "surbhitparashar7@gmail.com" }
+]
+requires-python = ">=3.13,<3.14"
+dependencies = []
+
+[project.scripts]
+recoverai = "recoverai:main"
+
+[build-system]
+requires = ["uv_build>=0.12.5,<0.13.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "mypy>=2.3.1",
+    "pre-commit>=4.6.2",
+    "pytest>=9.1.1",
+    "ruff>=0.16.4",
+]
+
+
+[tool.ruff]
+target-version = "py313"
+line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = [
+    "E",
+    "F",
+    "I",
+    "B",
+    "UP",
+    "SIM",
+]
+ignore = [
+    "E501",
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "lf"
+
+
+[tool.mypy]
+python_version = "3.13"
+strict = true
+warn_unreachable = true
+pretty = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
