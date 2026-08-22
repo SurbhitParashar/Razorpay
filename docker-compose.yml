@@ -1,0 +1,25 @@
+services:
+  recoverai:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      RECOVERAI_THRESHOLD: "0.5"
+      RECOVERAI_INTERVENTION_COST_INR: "5.00"
+      RECOVERAI_MAX_RETRIES: "3"
+      RECOVERAI_MAX_RECOVERY_AMOUNT_INR: "100000.00"
+      RECOVERAI_DRY_RUN: "false"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
