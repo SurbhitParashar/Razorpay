@@ -18,15 +18,19 @@ stages:
       nfiles: 10
     - path: src/recoverai/recovery
       hash: md5
-      md5: 5a7ad31fd515f7d5c32d3b75a98577ea.dir
-      size: 619
-      nfiles: 2
+      md5: fe1a120b9c4ab77221e6d2a1144ff120.dir
+      size: 6886
+      nfiles: 6
     params:
       params.yaml:
         economics:
           intervention_cost_inr: 5.0
         evaluation:
           threshold: 0.5
+        execution:
+          max_retries: 2
+          max_recovery_amount_inr: 100000.0
+          dry_run: true
         model:
           max_iter: 1000
           class_weight: balanced

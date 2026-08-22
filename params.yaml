@@ -14,3 +14,8 @@ evaluation:
 
 economics:
   intervention_cost_inr: 5.0
+
+execution:
+  max_retries: 2
+  max_recovery_amount_inr: 100000.0
+  dry_run: true
