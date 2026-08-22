@@ -1,0 +1,17 @@
+stages:
+  train_baseline:
+    cmd: uv run python scripts/train_baseline.py
+    deps:
+      - data/raw/payments.csv
+      - scripts/train_baseline.py
+      - src/recoverai/ml
+    params:
+      - seed
+      - split
+      - model
+      - evaluation
+    outs:
+      - models/recovery_baseline.joblib
+    metrics:
+      - metrics/baseline.json:
+          cache: false
