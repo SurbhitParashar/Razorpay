@@ -18,9 +18,9 @@ stages:
       nfiles: 10
     - path: src/recoverai/recovery
       hash: md5
-      md5: fe1a120b9c4ab77221e6d2a1144ff120.dir
-      size: 6886
-      nfiles: 6
+      md5: 51c02ea00d467ebf2cd307720027859f.dir
+      size: 18223
+      nfiles: 12
     params:
       params.yaml:
         economics:
