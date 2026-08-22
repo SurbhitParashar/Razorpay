@@ -29,6 +29,8 @@ class RecoverySettings:
     max_recovery_amount_inr: Decimal = Decimal("100000.00")
     dry_run: bool = False
     state_database_path: str = "data/recoverai.db"
+    razorpay_key_id: str = ""
+    razorpay_key_secret: str = ""
 
     @classmethod
     def from_environment(cls) -> RecoverySettings:
@@ -48,4 +50,6 @@ class RecoverySettings:
                 "RECOVERAI_STATE_DATABASE_PATH",
                 "data/recoverai.db",
             ),
+            razorpay_key_id=os.getenv("RAZORPAY_KEY_ID", ""),
+            razorpay_key_secret=os.getenv("RAZORPAY_KEY_SECRET", ""),
         )

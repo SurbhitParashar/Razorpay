@@ -9,6 +9,34 @@ from recoverai.recovery.models import (
     RecoveryStatus,
 )
 from recoverai.state.sqlite import SQLiteRecoveryStateStore
+from recoverai.state.store import StoredRecoveryOutcome
+
+
+def test_sqlite_state_store_persists_recovery_outcome(
+    tmp_path: Path,
+) -> None:
+    database_path = str(tmp_path / "recoverai.db")
+
+    first_store = SQLiteRecoveryStateStore(database_path)
+
+    first_store.save_recovery_outcome(
+        StoredRecoveryOutcome(
+            payment_id="pay_outcome_001",
+            idempotency_key="recoverai:pay_outcome_001:outcome",
+            status="paid",
+            recovered_amount_inr=Decimal("1500.00"),
+            reason="Customer completed payment.",
+        )
+    )
+
+    second_store = SQLiteRecoveryStateStore(database_path)
+
+    stored = second_store.get_recovery_outcome("recoverai:pay_outcome_001:outcome")
+
+    assert stored is not None
+    assert stored.payment_id == "pay_outcome_001"
+    assert stored.status == "paid"
+    assert stored.recovered_amount_inr == Decimal("1500.00")
 
 
 def test_executor_preserves_idempotency_across_instances(

@@ -4,9 +4,14 @@ from functools import lru_cache
 
 from recoverai.agent.orchestrator import RecoveryAgent
 from recoverai.api.config import RecoverySettings
+from recoverai.recovery.action import (
+    FakePaymentLinkProvider,
+    PaymentLinkProvider,
+)
 from recoverai.recovery.executor import ExecutionConfig, RecoveryExecutor
 from recoverai.recovery.gateway import FakeRecoveryGateway
 from recoverai.recovery.policy import RecoveryPolicy
+from recoverai.recovery.razorpay import RazorpayPaymentLinkProvider
 from recoverai.service.service import RecoveryService
 from recoverai.state.sqlite import SQLiteRecoveryStateStore
 
@@ -26,6 +31,15 @@ def get_recovery_service() -> RecoveryService:
     )
 
     gateway = FakeRecoveryGateway()
+    payment_link_provider: PaymentLinkProvider
+
+    if settings.razorpay_key_id and settings.razorpay_key_secret:
+        payment_link_provider = RazorpayPaymentLinkProvider(
+            key_id=settings.razorpay_key_id,
+            key_secret=settings.razorpay_key_secret,
+        )
+    else:
+        payment_link_provider = FakePaymentLinkProvider()
 
     state_store = SQLiteRecoveryStateStore(
         settings.state_database_path,
@@ -39,6 +53,7 @@ def get_recovery_service() -> RecoveryService:
             dry_run=settings.dry_run,
         ),
         state_store=state_store,
+        payment_link_provider=payment_link_provider,
     )
 
     agent = RecoveryAgent(

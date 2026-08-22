@@ -63,7 +63,8 @@ def test_recovery_endpoint_executes_recovery(client: TestClient) -> None:
     assert body["payment_id"] == "pay_api_001"
     assert body["decision"] == "create_payment_link"
     assert body["execution_status"] == "success"
-    assert Decimal(body["recovered_amount_inr"]) == Decimal("1500.00")
+    assert Decimal(body["recovered_amount_inr"]) == Decimal("0")
+    assert body["payment_link"] == "https://example.test/recover/pay_api_001"
 
 
 def test_recovery_endpoint_rejects_invalid_probability(
@@ -149,3 +150,103 @@ def test_recovery_endpoint_is_idempotent(
     assert first_body["execution_status"] == "success"
     assert second_body["execution_status"] == "skipped"
     assert second_body["recovered_amount_inr"] == "0"
+
+
+def test_recovery_outcome_endpoint_records_paid_revenue(
+    client: TestClient,
+) -> None:
+    response = client.post(
+        "/v1/recovery-outcomes",
+        json={
+            "payment_id": "pay_outcome_api_001",
+            "status": "paid",
+            "recovered_amount_inr": "1500.00",
+            "reason": "Customer completed recovery payment.",
+        },
+    )
+
+    assert response.status_code == 200
+
+    body = response.json()
+
+    assert body["payment_id"] == "pay_outcome_api_001"
+    assert body["status"] == "paid"
+    assert Decimal(body["recovered_amount_inr"]) == Decimal("1500.00")
+
+
+def test_recovery_outcome_endpoint_rejects_negative_amount(
+    client: TestClient,
+) -> None:
+    response = client.post(
+        "/v1/recovery-outcomes",
+        json={
+            "payment_id": "pay_outcome_api_002",
+            "status": "paid",
+            "recovered_amount_inr": "-100.00",
+            "reason": "Invalid amount.",
+        },
+    )
+
+    assert response.status_code == 422
+
+
+def test_recovery_outcome_endpoint_rejects_unknown_fields(
+    client: TestClient,
+) -> None:
+    response = client.post(
+        "/v1/recovery-outcomes",
+        json={
+            "payment_id": "pay_outcome_api_003",
+            "status": "paid",
+            "recovered_amount_inr": "1000.00",
+            "reason": "Paid.",
+            "unexpected": True,
+        },
+    )
+
+    assert response.status_code == 422
+
+
+def test_recovery_outcome_endpoint_rejects_invalid_status(
+    client: TestClient,
+) -> None:
+    response = client.post(
+        "/v1/recovery-outcomes",
+        json={
+            "payment_id": "pay_outcome_api_004",
+            "status": "something_invalid",
+            "recovered_amount_inr": "1000.00",
+            "reason": "Invalid status.",
+        },
+    )
+
+    assert response.status_code == 422
+
+
+def test_recovery_metrics_endpoint(
+    client: TestClient,
+) -> None:
+    payment_id = "pay_metrics_001"
+
+    outcome_response = client.post(
+        "/v1/recovery-outcomes",
+        json={
+            "payment_id": payment_id,
+            "status": "paid",
+            "recovered_amount_inr": "1500.00",
+            "reason": "Customer completed payment.",
+        },
+    )
+
+    assert outcome_response.status_code == 200
+
+    response = client.get("/v1/recovery-metrics")
+
+    assert response.status_code == 200
+
+    body = response.json()
+
+    assert body["attempted_count"] >= 1
+    assert body["successful_recovery_count"] >= 1
+    assert Decimal(body["recovered_revenue_inr"]) >= Decimal("1500.00")
+    assert body["recovery_rate"] > 0

@@ -36,3 +36,4 @@ class RecoveryResult:
     recovered_amount_inr: Decimal
     attempt_number: int
     reason: str
+    payment_link: str | None = None
