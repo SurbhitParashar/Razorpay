@@ -20,7 +20,6 @@ jobs:
     name: Quality Checks
     runs-on: ubuntu-latest
 
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
@@ -34,7 +33,13 @@ jobs:
         run: uv python install 3.13
 
       - name: Sync dependencies
-        run: uv sync --locked
+        run: uv sync --locked --python 3.13 --group dev
+
+      - name: Verify DVC
+        run: uv run dvc --version
+
+      - name: Reproduce DVC pipeline
+        run: uv run dvc repro
 
       - name: Ruff format check
         run: uv run ruff format --check .
