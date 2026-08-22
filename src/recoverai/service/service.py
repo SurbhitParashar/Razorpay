@@ -3,6 +3,8 @@ from __future__ import annotations
 from recoverai.agent.orchestrator import RecoveryAgent
 from recoverai.recovery.models import RecoveryAction
 from recoverai.service.schemas import (
+    RecoveryOutcomeRequestSchema,
+    RecoveryOutcomeResponseSchema,
     RecoveryRequestSchema,
     RecoveryResponseSchema,
 )
@@ -35,4 +37,22 @@ class RecoveryService:
             if decision.action is RecoveryAction.RECOVER
             else decision.reason,
             payment_link=execution.result.payment_link,
+        )
+
+    def record_recovery_outcome(
+        self,
+        request: RecoveryOutcomeRequestSchema,
+    ) -> RecoveryOutcomeResponseSchema:
+        outcome = self.agent.executor.record_recovery_outcome(
+            payment_id=request.payment_id,
+            status=request.status,
+            recovered_amount_inr=request.recovered_amount_inr,
+            reason=request.reason,
+        )
+
+        return RecoveryOutcomeResponseSchema(
+            payment_id=outcome.payment_id,
+            status=outcome.status,
+            recovered_amount_inr=outcome.recovered_amount_inr,
+            reason=outcome.reason,
         )

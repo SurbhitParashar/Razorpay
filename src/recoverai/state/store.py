@@ -24,6 +24,15 @@ class StoredPaymentLink:
     reason: str
 
 
+@dataclass(frozen=True, slots=True)
+class StoredRecoveryOutcome:
+    payment_id: str
+    idempotency_key: str
+    status: str
+    recovered_amount_inr: Decimal
+    reason: str
+
+
 class RecoveryStateStore(Protocol):
     def get_recovery(
         self,
@@ -43,4 +52,14 @@ class RecoveryStateStore(Protocol):
     def save_payment_link(
         self,
         payment_link: StoredPaymentLink,
+    ) -> None: ...
+
+    def get_recovery_outcome(
+        self,
+        idempotency_key: str,
+    ) -> StoredRecoveryOutcome | None: ...
+
+    def save_recovery_outcome(
+        self,
+        outcome: StoredRecoveryOutcome,
     ) -> None: ...

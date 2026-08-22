@@ -3,7 +3,11 @@ from __future__ import annotations
 import sqlite3
 from decimal import Decimal
 
-from recoverai.state.store import StoredPaymentLink, StoredRecovery
+from recoverai.state.store import (
+    StoredPaymentLink,
+    StoredRecovery,
+    StoredRecoveryOutcome,
+)
 
 
 class SQLiteRecoveryStateStore:
@@ -27,6 +31,7 @@ class SQLiteRecoveryStateStore:
                 )
                 """
             )
+
             connection.execute(
                 """
                 CREATE TABLE IF NOT EXISTS payment_links (
@@ -35,6 +40,18 @@ class SQLiteRecoveryStateStore:
                     status TEXT NOT NULL,
                     amount_inr TEXT NOT NULL,
                     url TEXT NOT NULL,
+                    reason TEXT NOT NULL
+                )
+                """
+            )
+
+            connection.execute(
+                """
+                CREATE TABLE IF NOT EXISTS recovery_outcomes (
+                    idempotency_key TEXT PRIMARY KEY,
+                    payment_id TEXT NOT NULL,
+                    status TEXT NOT NULL,
+                    recovered_amount_inr TEXT NOT NULL,
                     reason TEXT NOT NULL
                 )
                 """
@@ -151,5 +168,60 @@ class SQLiteRecoveryStateStore:
                     str(payment_link.amount_inr),
                     payment_link.url,
                     payment_link.reason,
+                ),
+            )
+
+    def get_recovery_outcome(
+        self,
+        idempotency_key: str,
+    ) -> StoredRecoveryOutcome | None:
+        with self._connect() as connection:
+            row = connection.execute(
+                """
+                SELECT
+                    payment_id,
+                    idempotency_key,
+                    status,
+                    recovered_amount_inr,
+                    reason
+                FROM recovery_outcomes
+                WHERE idempotency_key = ?
+                """,
+                (idempotency_key,),
+            ).fetchone()
+
+        if row is None:
+            return None
+
+        return StoredRecoveryOutcome(
+            payment_id=row[0],
+            idempotency_key=row[1],
+            status=row[2],
+            recovered_amount_inr=Decimal(row[3]),
+            reason=row[4],
+        )
+
+    def save_recovery_outcome(
+        self,
+        outcome: StoredRecoveryOutcome,
+    ) -> None:
+        with self._connect() as connection:
+            connection.execute(
+                """
+                INSERT OR REPLACE INTO recovery_outcomes (
+                    idempotency_key,
+                    payment_id,
+                    status,
+                    recovered_amount_inr,
+                    reason
+                )
+                VALUES (?, ?, ?, ?, ?)
+                """,
+                (
+                    outcome.idempotency_key,
+                    outcome.payment_id,
+                    outcome.status,
+                    str(outcome.recovered_amount_inr),
+                    outcome.reason,
                 ),
             )

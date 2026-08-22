@@ -5,6 +5,7 @@ from decimal import Decimal
 from pydantic import BaseModel, ConfigDict, Field
 
 from recoverai.recovery.models import RecoveryAction, RecoveryStatus
+from recoverai.recovery.outcome import RecoveryOutcomeStatus
 
 
 class RecoveryRequestSchema(BaseModel):
@@ -26,3 +27,21 @@ class RecoveryResponseSchema(BaseModel):
     expected_net_value_inr: Decimal
     reason: str
     payment_link: str | None = None
+
+
+class RecoveryOutcomeRequestSchema(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    payment_id: str = Field(min_length=1)
+    status: RecoveryOutcomeStatus
+    recovered_amount_inr: Decimal = Field(ge=0, decimal_places=2)
+    reason: str = Field(min_length=1)
+
+
+class RecoveryOutcomeResponseSchema(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    payment_id: str
+    status: RecoveryOutcomeStatus
+    recovered_amount_inr: Decimal = Field(ge=0)
+    reason: str

@@ -150,3 +150,74 @@ def test_recovery_endpoint_is_idempotent(
     assert first_body["execution_status"] == "success"
     assert second_body["execution_status"] == "skipped"
     assert second_body["recovered_amount_inr"] == "0"
+
+
+def test_recovery_outcome_endpoint_records_paid_revenue(
+    client: TestClient,
+) -> None:
+    response = client.post(
+        "/v1/recovery-outcomes",
+        json={
+            "payment_id": "pay_outcome_api_001",
+            "status": "paid",
+            "recovered_amount_inr": "1500.00",
+            "reason": "Customer completed recovery payment.",
+        },
+    )
+
+    assert response.status_code == 200
+
+    body = response.json()
+
+    assert body["payment_id"] == "pay_outcome_api_001"
+    assert body["status"] == "paid"
+    assert Decimal(body["recovered_amount_inr"]) == Decimal("1500.00")
+
+
+def test_recovery_outcome_endpoint_rejects_negative_amount(
+    client: TestClient,
+) -> None:
+    response = client.post(
+        "/v1/recovery-outcomes",
+        json={
+            "payment_id": "pay_outcome_api_002",
+            "status": "paid",
+            "recovered_amount_inr": "-100.00",
+            "reason": "Invalid amount.",
+        },
+    )
+
+    assert response.status_code == 422
+
+
+def test_recovery_outcome_endpoint_rejects_unknown_fields(
+    client: TestClient,
+) -> None:
+    response = client.post(
+        "/v1/recovery-outcomes",
+        json={
+            "payment_id": "pay_outcome_api_003",
+            "status": "paid",
+            "recovered_amount_inr": "1000.00",
+            "reason": "Paid.",
+            "unexpected": True,
+        },
+    )
+
+    assert response.status_code == 422
+
+
+def test_recovery_outcome_endpoint_rejects_invalid_status(
+    client: TestClient,
+) -> None:
+    response = client.post(
+        "/v1/recovery-outcomes",
+        json={
+            "payment_id": "pay_outcome_api_004",
+            "status": "something_invalid",
+            "recovered_amount_inr": "1000.00",
+            "reason": "Invalid status.",
+        },
+    )
+
+    assert response.status_code == 422

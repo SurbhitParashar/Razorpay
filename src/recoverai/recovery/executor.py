@@ -12,7 +12,16 @@ from recoverai.recovery.models import (
     RecoveryResult,
     RecoveryStatus,
 )
-from recoverai.state.store import RecoveryStateStore, StoredPaymentLink, StoredRecovery
+from recoverai.recovery.outcome import (
+    RecoveryOutcome,
+    RecoveryOutcomeStatus,
+)
+from recoverai.state.store import (
+    RecoveryStateStore,
+    StoredPaymentLink,
+    StoredRecovery,
+    StoredRecoveryOutcome,
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -122,6 +131,52 @@ class RecoveryExecutor:
             request,
             idempotency_key,
         )
+
+    def record_recovery_outcome(
+        self,
+        payment_id: str,
+        status: RecoveryOutcomeStatus,
+        recovered_amount_inr: Decimal,
+        reason: str,
+    ) -> RecoveryOutcome:
+        if recovered_amount_inr < Decimal("0"):
+            raise ValueError("Recovered amount cannot be negative.")
+
+        idempotency_key = f"recoverai:{payment_id}:outcome"
+
+        if self.state_store is not None:
+            stored = self.state_store.get_recovery_outcome(idempotency_key)
+
+            if stored is not None:
+                return RecoveryOutcome(
+                    payment_id=stored.payment_id,
+                    status=RecoveryOutcomeStatus(stored.status),
+                    recovered_amount_inr=stored.recovered_amount_inr,
+                    reason=stored.reason,
+                )
+
+        if status is not RecoveryOutcomeStatus.PAID:
+            recovered_amount_inr = Decimal("0")
+
+        outcome = RecoveryOutcome(
+            payment_id=payment_id,
+            status=status,
+            recovered_amount_inr=recovered_amount_inr,
+            reason=reason,
+        )
+
+        if self.state_store is not None:
+            self.state_store.save_recovery_outcome(
+                StoredRecoveryOutcome(
+                    payment_id=payment_id,
+                    idempotency_key=idempotency_key,
+                    status=status.value,
+                    recovered_amount_inr=recovered_amount_inr,
+                    reason=reason,
+                )
+            )
+
+        return outcome
 
     def _execute_payment_link(
         self,

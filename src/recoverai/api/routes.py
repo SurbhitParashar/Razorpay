@@ -6,6 +6,8 @@ from fastapi import APIRouter, Depends
 
 from recoverai.api.dependencies import get_recovery_service
 from recoverai.service.schemas import (
+    RecoveryOutcomeRequestSchema,
+    RecoveryOutcomeResponseSchema,
     RecoveryRequestSchema,
     RecoveryResponseSchema,
 )
@@ -28,3 +30,14 @@ def create_recovery(
     service: RecoveryServiceDependency,
 ) -> RecoveryResponseSchema:
     return service.recover(request)
+
+
+@router.post(
+    "/recovery-outcomes",
+    response_model=RecoveryOutcomeResponseSchema,
+)
+def record_recovery_outcome(
+    request: RecoveryOutcomeRequestSchema,
+    service: RecoveryServiceDependency,
+) -> RecoveryOutcomeResponseSchema:
+    return service.record_recovery_outcome(request)
