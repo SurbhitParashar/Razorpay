@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from decimal import Decimal
 from functools import lru_cache
 
 from recoverai.agent.orchestrator import RecoveryAgent
+from recoverai.api.config import RecoverySettings
 from recoverai.recovery.executor import ExecutionConfig, RecoveryExecutor
 from recoverai.recovery.gateway import FakeRecoveryGateway
 from recoverai.recovery.policy import RecoveryPolicy
@@ -11,23 +11,28 @@ from recoverai.service.service import RecoveryService
 
 
 @lru_cache(maxsize=1)
+def get_settings() -> RecoverySettings:
+    return RecoverySettings.from_environment()
+
+
+@lru_cache(maxsize=1)
 def get_recovery_service() -> RecoveryService:
+    settings = get_settings()
+
     policy = RecoveryPolicy(
-        threshold=0.5,
-        intervention_cost_inr=Decimal("5.00"),
+        threshold=settings.threshold,
+        intervention_cost_inr=settings.intervention_cost_inr,
     )
 
     gateway = FakeRecoveryGateway()
 
-    config = ExecutionConfig(
-        max_retries=3,
-        max_recovery_amount_inr=Decimal("100000.00"),
-        dry_run=False,
-    )
-
     executor = RecoveryExecutor(
         gateway=gateway,
-        config=config,
+        config=ExecutionConfig(
+            max_retries=settings.max_retries,
+            max_recovery_amount_inr=settings.max_recovery_amount_inr,
+            dry_run=settings.dry_run,
+        ),
     )
 
     agent = RecoveryAgent(
