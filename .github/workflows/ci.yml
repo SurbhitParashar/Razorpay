@@ -35,6 +35,9 @@ jobs:
       - name: Sync dependencies
         run: uv sync --locked --python 3.13
 
+      - name: Reproduce DVC pipeline
+        run: dvc repro
+
       - name: Ruff format check
         run: uv run ruff format --check .
 
