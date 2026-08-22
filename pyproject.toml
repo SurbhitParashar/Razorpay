@@ -8,12 +8,14 @@ authors = [
 ]
 requires-python = ">=3.13,<3.14"
 dependencies = [
+    "fastapi>=0.116,<1",
     "joblib>=1.5,<2",
     "numpy>=2.5,<3",
     "pandas>=3.0,<4",
     "pydantic>=2.12,<3",
     "pyyaml>=6.0.3",
     "scikit-learn>=1.9,<2",
+    "uvicorn[standard]>=0.35,<1",
 ]
 
 [project.scripts]
@@ -26,6 +28,7 @@ build-backend = "uv_build"
 [dependency-groups]
 dev = [
     "dvc>=3.67,<4",
+    "httpx2>1",
     "mypy>=2.3.1",
     "pandas-stubs>=2.3,<3",
     "pre-commit>=4.6.2",
