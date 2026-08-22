@@ -7,6 +7,7 @@ from enum import StrEnum
 
 class RecoveryAction(StrEnum):
     RECOVER = "recover"
+    CREATE_PAYMENT_LINK = "create_payment_link"
     NO_ACTION = "no_action"
     IDEMPOTENT_NOOP = "idempotent_noop"
     STOPPED = "stopped"

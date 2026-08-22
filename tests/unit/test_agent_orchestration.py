@@ -40,7 +40,7 @@ def test_agent_recommends_recovery_for_profitable_payment() -> None:
         recovery_probability=0.8,
     )
 
-    assert decision.action is RecoveryAction.RECOVER
+    assert decision.action is RecoveryAction.CREATE_PAYMENT_LINK
     assert decision.expected_net_value_inr == Decimal("795.0")
 
 
@@ -79,7 +79,7 @@ def test_agent_executes_through_executor() -> None:
         attempt_number=1,
     )
 
-    assert execution.decision.action is RecoveryAction.RECOVER
+    assert execution.decision.action is RecoveryAction.CREATE_PAYMENT_LINK
     assert execution.result.status is RecoveryStatus.SUCCESS
     assert execution.result.recovered_amount_inr == Decimal("1000")
     assert gateway.calls == ["recoverai:pay_004"]
@@ -117,7 +117,7 @@ def test_agent_keeps_executor_safety_limit() -> None:
         attempt_number=1,
     )
 
-    assert execution.decision.action is RecoveryAction.RECOVER
+    assert execution.decision.action is RecoveryAction.CREATE_PAYMENT_LINK
     assert execution.result.action is RecoveryAction.STOPPED
     assert execution.result.status is RecoveryStatus.SKIPPED
     assert gateway.calls == []

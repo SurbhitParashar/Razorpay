@@ -61,7 +61,7 @@ def test_recovery_endpoint_executes_recovery(client: TestClient) -> None:
     body = response.json()
 
     assert body["payment_id"] == "pay_api_001"
-    assert body["decision"] == "recover"
+    assert body["decision"] == "create_payment_link"
     assert body["execution_status"] == "success"
     assert Decimal(body["recovered_amount_inr"]) == Decimal("1500.00")
 

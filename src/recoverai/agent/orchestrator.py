@@ -63,9 +63,9 @@ class RecoveryAgent:
             payment_id=payment_id,
             probability=recovery_probability,
             threshold=self.policy.threshold,
-            action=RecoveryAction.RECOVER,
+            action=RecoveryAction.CREATE_PAYMENT_LINK,
             expected_net_value_inr=expected_net_value,
-            reason="Recovery probability and expected economic value justify intervention.",
+            reason="Recovery probability and expected economic value justify payment-link recovery.",
         )
 
     def execute(

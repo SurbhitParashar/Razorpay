@@ -50,7 +50,7 @@ def test_service_executes_recovery() -> None:
     )
 
     assert response.payment_id == "pay_service_001"
-    assert response.decision == "recover"
+    assert response.decision == "create_payment_link"
     assert response.execution_status == "success"
     assert response.recovered_amount_inr == Decimal("1000.00")
     assert gateway.calls == ["recoverai:pay_service_001"]
@@ -88,7 +88,7 @@ def test_service_surfaces_gateway_failure() -> None:
         )
     )
 
-    assert response.decision == "recover"
+    assert response.decision == "create_payment_link"
     assert response.execution_status == "failed"
     assert response.recovered_amount_inr == Decimal("0")
     assert gateway.calls == ["recoverai:pay_service_003"]
@@ -106,7 +106,7 @@ def test_service_preserves_executor_safety_limit() -> None:
         )
     )
 
-    assert response.decision == "recover"
+    assert response.decision == "create_payment_link"
     assert response.execution_status == "skipped"
     assert response.recovered_amount_inr == Decimal("0")
     assert gateway.calls == []
