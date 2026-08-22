@@ -2,52 +2,60 @@
 
 AI-powered revenue recovery agent for merchants.
 
-## Status
+RecoverAI identifies payments with a high probability of recovery, evaluates whether intervention is economically justified, executes bounded recovery actions, persists execution state for idempotency, records actual recovery outcomes, and exposes business-level recovery metrics.
 
-Active development
+The system is designed around **reproducibility, bounded autonomy, durable state, auditability, and measurable business impact**.
 
-## Track
-
-Track 03: AI Revenue Recovery
+---
 
 ## Problem
 
-RecoverAI is being built to detect revenue at risk, estimate recovery likelihood, propose bounded recovery actions, execute approved actions through Razorpay Test Mode, and measure recovered revenue across a batch.
+Failed or incomplete payments represent potentially recoverable revenue for merchants.
 
-## Engineering Goals
+A recovery system should not simply attempt recovery for every payment. It needs to answer:
 
-- Reproducible ML pipeline
-- DVC-managed datasets and models
-- Deterministic policy enforcement
-- Bounded agent actions
-- Complete audit trail
-- Automated testing
-- CI validation
-- Containerized deployment
-- Measured recovery performance
+1. Which payments are worth attempting to recover?
+2. Is the expected recovered value greater than the intervention cost?
+3. What safety limits should prevent uncontrolled actions?
+4. How do we guarantee the same payment is not recovered twice?
+5. How do we persist recovery state across process restarts?
+6. How much revenue was actually recovered?
 
-## Technology
+RecoverAI addresses these questions through an ML-assisted decision pipeline and a bounded execution layer.
 
-Current foundation:
+---
 
-- Python 3.13
-- uv
-- DVC
-- Ruff
-- MyPy
-- Pytest
-- pre-commit
-
-Application dependencies will be added incrementally as each system component is implemented.
-
-## Repository Structure
+## Solution
 
 ```text
-data/        Data artifacts
-docs/        Technical documentation
-configs/     Configuration
-metrics/     Evaluation metrics
-models/      Model artifacts
-scripts/     Utility scripts
-src/         Application source
-tests/       Automated tests
+Payment Data
+     │
+     ▼
+Recovery Probability Model
+     │
+     ▼
+Economic Policy
+     │
+     ├── Below threshold ──────► No Action
+     │
+     ├── Negative economics ───► No Action
+     │
+     ▼
+Recovery Agent
+     │
+     ▼
+Safety Executor
+     │
+     ├── Amount limit
+     ├── Retry limit
+     ├── Idempotency
+     └── Durable state
+     │
+     ▼
+Razorpay Test Mode / Fake Provider
+     │
+     ▼
+Recovery Outcome
+     │
+     ▼
+Business Metrics
