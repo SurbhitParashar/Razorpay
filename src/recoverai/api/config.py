@@ -28,6 +28,7 @@ class RecoverySettings:
     max_retries: int = 3
     max_recovery_amount_inr: Decimal = Decimal("100000.00")
     dry_run: bool = False
+    state_database_path: str = "data/recoverai.db"
 
     @classmethod
     def from_environment(cls) -> RecoverySettings:
@@ -43,4 +44,8 @@ class RecoverySettings:
                 "100000.00",
             ),
             dry_run=_bool_env("RECOVERAI_DRY_RUN", "false"),
+            state_database_path=os.getenv(
+                "RECOVERAI_STATE_DATABASE_PATH",
+                "data/recoverai.db",
+            ),
         )
