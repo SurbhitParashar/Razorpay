@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from decimal import Decimal
 
+from recoverai.recovery.action import PaymentLinkProvider
 from recoverai.recovery.audit import RecoveryAuditEvent
 from recoverai.recovery.gateway import RecoveryGateway
 from recoverai.recovery.models import (
@@ -11,7 +12,7 @@ from recoverai.recovery.models import (
     RecoveryResult,
     RecoveryStatus,
 )
-from recoverai.state.store import RecoveryStateStore, StoredRecovery
+from recoverai.state.store import RecoveryStateStore, StoredPaymentLink, StoredRecovery
 
 
 @dataclass(frozen=True, slots=True)
@@ -27,11 +28,14 @@ class RecoveryExecutor:
         gateway: RecoveryGateway,
         config: ExecutionConfig,
         state_store: RecoveryStateStore | None = None,
+        payment_link_provider: PaymentLinkProvider | None = None,
     ) -> None:
         self.gateway = gateway
         self.config = config
         self.state_store = state_store
+        self.payment_link_provider = payment_link_provider
         self._completed: set[str] = set()
+        self._created_payment_links: dict[str, str] = {}
         self.audit_events: list[RecoveryAuditEvent] = []
 
     def execute(self, request: RecoveryRequest) -> RecoveryResult:
@@ -46,6 +50,16 @@ class RecoveryExecutor:
                 "Payment already recovered.",
             )
 
+        if request.payment_id in self._created_payment_links:
+            return self._record(
+                request,
+                RecoveryAction.IDEMPOTENT_NOOP,
+                RecoveryStatus.SKIPPED,
+                Decimal("0"),
+                "Payment link already created.",
+                payment_link=self._created_payment_links[request.payment_id],
+            )
+
         if self.state_store is not None:
             stored = self.state_store.get_recovery(idempotency_key)
 
@@ -58,6 +72,20 @@ class RecoveryExecutor:
                     RecoveryStatus.SKIPPED,
                     Decimal("0"),
                     "Payment already recovered.",
+                )
+
+            stored_payment_link = self.state_store.get_payment_link(idempotency_key)
+
+            if stored_payment_link is not None:
+                self._created_payment_links[request.payment_id] = stored_payment_link.url
+
+                return self._record(
+                    request,
+                    RecoveryAction.IDEMPOTENT_NOOP,
+                    RecoveryStatus.SKIPPED,
+                    Decimal("0"),
+                    "Payment link already created.",
+                    payment_link=stored_payment_link.url,
                 )
 
         if request.recovery_probability < request.threshold:
@@ -87,6 +115,90 @@ class RecoveryExecutor:
                 "Maximum recovery attempts exceeded.",
             )
 
+        if self.payment_link_provider is None:
+            return self._execute_gateway_recovery(request, idempotency_key)
+
+        return self._execute_payment_link(
+            request,
+            idempotency_key,
+        )
+
+    def _execute_payment_link(
+        self,
+        request: RecoveryRequest,
+        idempotency_key: str,
+    ) -> RecoveryResult:
+        if self.config.dry_run:
+            dry_run_link = f"https://example.test/recover/{request.payment_id}"
+            self._created_payment_links[request.payment_id] = dry_run_link
+
+            if self.state_store is not None:
+                self.state_store.save_payment_link(
+                    StoredPaymentLink(
+                        payment_id=request.payment_id,
+                        idempotency_key=idempotency_key,
+                        status=RecoveryStatus.SUCCESS.value,
+                        amount_inr=request.amount_inr,
+                        url=dry_run_link,
+                        reason="Dry-run payment-link recovery approved.",
+                    )
+                )
+
+            return self._record(
+                request,
+                RecoveryAction.CREATE_PAYMENT_LINK,
+                RecoveryStatus.SUCCESS,
+                Decimal("0"),
+                "Dry-run payment-link recovery approved.",
+                payment_link=dry_run_link,
+            )
+
+        if self.payment_link_provider is None:
+            raise RuntimeError("Payment-link provider is not configured.")
+
+        try:
+            link = self.payment_link_provider.create_payment_link(
+                payment_id=request.payment_id,
+                amount_inr=request.amount_inr,
+                idempotency_key=idempotency_key,
+            )
+        except Exception as exc:
+            return self._record(
+                request,
+                RecoveryAction.CREATE_PAYMENT_LINK,
+                RecoveryStatus.FAILED,
+                Decimal("0"),
+                f"Payment-link creation failed: {exc}",
+            )
+
+        self._created_payment_links[request.payment_id] = link.url
+
+        if self.state_store is not None:
+            self.state_store.save_payment_link(
+                StoredPaymentLink(
+                    payment_id=request.payment_id,
+                    idempotency_key=idempotency_key,
+                    status=RecoveryStatus.SUCCESS.value,
+                    amount_inr=request.amount_inr,
+                    url=link.url,
+                    reason="Recovery payment link created.",
+                )
+            )
+
+        return self._record(
+            request,
+            RecoveryAction.CREATE_PAYMENT_LINK,
+            RecoveryStatus.SUCCESS,
+            Decimal("0"),
+            "Recovery payment link created.",
+            payment_link=link.url,
+        )
+
+    def _execute_gateway_recovery(
+        self,
+        request: RecoveryRequest,
+        idempotency_key: str,
+    ) -> RecoveryResult:
         if self.config.dry_run:
             self._completed.add(request.payment_id)
 
@@ -133,6 +245,7 @@ class RecoveryExecutor:
         status: RecoveryStatus,
         recovered_amount: Decimal,
         reason: str,
+        payment_link: str | None = None,
     ) -> RecoveryResult:
         self.audit_events.append(
             RecoveryAuditEvent.create(
@@ -152,4 +265,5 @@ class RecoveryExecutor:
             recovered_amount_inr=recovered_amount,
             attempt_number=request.attempt_number,
             reason=reason,
+            payment_link=payment_link,
         )

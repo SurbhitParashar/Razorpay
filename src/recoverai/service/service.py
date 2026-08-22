@@ -34,4 +34,5 @@ class RecoveryService:
             reason=execution.result.reason
             if decision.action is RecoveryAction.RECOVER
             else decision.reason,
+            payment_link=execution.result.payment_link,
         )

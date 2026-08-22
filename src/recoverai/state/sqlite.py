@@ -3,7 +3,7 @@ from __future__ import annotations
 import sqlite3
 from decimal import Decimal
 
-from recoverai.state.store import StoredRecovery
+from recoverai.state.store import StoredPaymentLink, StoredRecovery
 
 
 class SQLiteRecoveryStateStore:
@@ -23,6 +23,18 @@ class SQLiteRecoveryStateStore:
                     payment_id TEXT NOT NULL,
                     status TEXT NOT NULL,
                     recovered_amount_inr TEXT NOT NULL,
+                    reason TEXT NOT NULL
+                )
+                """
+            )
+            connection.execute(
+                """
+                CREATE TABLE IF NOT EXISTS payment_links (
+                    idempotency_key TEXT PRIMARY KEY,
+                    payment_id TEXT NOT NULL,
+                    status TEXT NOT NULL,
+                    amount_inr TEXT NOT NULL,
+                    url TEXT NOT NULL,
                     reason TEXT NOT NULL
                 )
                 """
@@ -80,5 +92,64 @@ class SQLiteRecoveryStateStore:
                     recovery.status,
                     str(recovery.recovered_amount_inr),
                     recovery.reason,
+                ),
+            )
+
+    def get_payment_link(
+        self,
+        idempotency_key: str,
+    ) -> StoredPaymentLink | None:
+        with self._connect() as connection:
+            row = connection.execute(
+                """
+                SELECT
+                    payment_id,
+                    idempotency_key,
+                    status,
+                    amount_inr,
+                    url,
+                    reason
+                FROM payment_links
+                WHERE idempotency_key = ?
+                """,
+                (idempotency_key,),
+            ).fetchone()
+
+        if row is None:
+            return None
+
+        return StoredPaymentLink(
+            payment_id=row[0],
+            idempotency_key=row[1],
+            status=row[2],
+            amount_inr=Decimal(row[3]),
+            url=row[4],
+            reason=row[5],
+        )
+
+    def save_payment_link(
+        self,
+        payment_link: StoredPaymentLink,
+    ) -> None:
+        with self._connect() as connection:
+            connection.execute(
+                """
+                INSERT OR REPLACE INTO payment_links (
+                    idempotency_key,
+                    payment_id,
+                    status,
+                    amount_inr,
+                    url,
+                    reason
+                )
+                VALUES (?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    payment_link.idempotency_key,
+                    payment_link.payment_id,
+                    payment_link.status,
+                    str(payment_link.amount_inr),
+                    payment_link.url,
+                    payment_link.reason,
                 ),
             )

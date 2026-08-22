@@ -25,3 +25,4 @@ class RecoveryResponseSchema(BaseModel):
     recovered_amount_inr: Decimal = Field(ge=0)
     expected_net_value_inr: Decimal
     reason: str
+    payment_link: str | None = None

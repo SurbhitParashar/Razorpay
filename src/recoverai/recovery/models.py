@@ -7,6 +7,7 @@ from enum import StrEnum
 
 class RecoveryAction(StrEnum):
     RECOVER = "recover"
+    CREATE_PAYMENT_LINK = "create_payment_link"
     NO_ACTION = "no_action"
     IDEMPOTENT_NOOP = "idempotent_noop"
     STOPPED = "stopped"
@@ -35,3 +36,4 @@ class RecoveryResult:
     recovered_amount_inr: Decimal
     attempt_number: int
     reason: str
+    payment_link: str | None = None

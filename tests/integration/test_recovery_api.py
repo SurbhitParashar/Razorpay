@@ -63,7 +63,8 @@ def test_recovery_endpoint_executes_recovery(client: TestClient) -> None:
     assert body["payment_id"] == "pay_api_001"
     assert body["decision"] == "recover"
     assert body["execution_status"] == "success"
-    assert Decimal(body["recovered_amount_inr"]) == Decimal("1500.00")
+    assert Decimal(body["recovered_amount_inr"]) == Decimal("0")
+    assert body["payment_link"] == "https://example.test/recover/pay_api_001"
 
 
 def test_recovery_endpoint_rejects_invalid_probability(

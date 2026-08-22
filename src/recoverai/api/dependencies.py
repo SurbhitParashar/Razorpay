@@ -4,6 +4,7 @@ from functools import lru_cache
 
 from recoverai.agent.orchestrator import RecoveryAgent
 from recoverai.api.config import RecoverySettings
+from recoverai.recovery.action import FakePaymentLinkProvider
 from recoverai.recovery.executor import ExecutionConfig, RecoveryExecutor
 from recoverai.recovery.gateway import FakeRecoveryGateway
 from recoverai.recovery.policy import RecoveryPolicy
@@ -26,6 +27,7 @@ def get_recovery_service() -> RecoveryService:
     )
 
     gateway = FakeRecoveryGateway()
+    payment_link_provider = FakePaymentLinkProvider()
 
     state_store = SQLiteRecoveryStateStore(
         settings.state_database_path,
@@ -39,6 +41,7 @@ def get_recovery_service() -> RecoveryService:
             dry_run=settings.dry_run,
         ),
         state_store=state_store,
+        payment_link_provider=payment_link_provider,
     )
 
     agent = RecoveryAgent(

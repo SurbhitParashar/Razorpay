@@ -53,6 +53,7 @@ def test_service_executes_recovery() -> None:
     assert response.decision == "recover"
     assert response.execution_status == "success"
     assert response.recovered_amount_inr == Decimal("1000.00")
+    assert response.payment_link is None
     assert gateway.calls == ["recoverai:pay_service_001"]
 
 
