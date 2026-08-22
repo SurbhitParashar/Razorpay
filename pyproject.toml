@@ -7,7 +7,9 @@ authors = [
     { name = "SurbhitParashar", email = "surbhitparashar7@gmail.com" }
 ]
 requires-python = ">=3.13,<3.14"
-dependencies = []
+dependencies = [
+    "pydantic>=2.12,<3",
+]
 
 [project.scripts]
 recoverai = "recoverai:main"
