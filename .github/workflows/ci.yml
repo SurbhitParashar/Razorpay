@@ -4,11 +4,13 @@ on:
   push:
     branches:
       - main
+      - "feat/**"
       - "feature/**"
       - "chore/**"
   pull_request:
     branches:
       - main
+  workflow_dispatch:
 
 permissions:
   contents: read
