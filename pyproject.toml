@@ -8,6 +8,8 @@ authors = [
 ]
 requires-python = ">=3.13,<3.14"
 dependencies = [
+    "numpy>=2.5,<3",
+    "pandas>=3.0,<4",
     "pydantic>=2.12,<3",
 ]
 
@@ -20,7 +22,9 @@ build-backend = "uv_build"
 
 [dependency-groups]
 dev = [
+    "dvc>=3.67,<4",
     "mypy>=2.3.1",
+    "pandas-stubs>=2.3,<3",
     "pre-commit>=4.6.2",
     "pytest>=9.1.1",
     "ruff>=0.16.4",
