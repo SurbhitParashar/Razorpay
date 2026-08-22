@@ -9,15 +9,22 @@ stages:
       size: 10439984
     - path: scripts/train_baseline.py
       hash: md5
-      md5: 3358ef7e4aebb4fe14fa1f3e37339174
-      size: 2303
+      md5: fe82afb011b7ed7923f06c23eed42983
+      size: 2732
     - path: src/recoverai/ml
       hash: md5
-      md5: f0a7166b389b4a748c6f55b37c08bcdf.dir
-      size: 14631
-      nfiles: 8
+      md5: b7ee248ac915294feceb023d7d7d1b7e.dir
+      size: 21729
+      nfiles: 10
+    - path: src/recoverai/recovery
+      hash: md5
+      md5: 5a7ad31fd515f7d5c32d3b75a98577ea.dir
+      size: 619
+      nfiles: 2
     params:
       params.yaml:
+        economics:
+          intervention_cost_inr: 5.0
         evaluation:
           threshold: 0.5
         model:
@@ -31,7 +38,7 @@ stages:
     outs:
     - path: metrics/baseline.json
       hash: md5
-      md5: bde0a9da85e48a98243b0760b95c3b78
+      md5: 15c54d5ff332b5227480852fa664e71d
       size: 665
     - path: models/recovery_baseline.joblib
       hash: md5

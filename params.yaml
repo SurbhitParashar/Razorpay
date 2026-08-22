@@ -11,3 +11,6 @@ model:
 
 evaluation:
   threshold: 0.5
+
+economics:
+  intervention_cost_inr: 5.0

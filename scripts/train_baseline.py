@@ -1,6 +1,8 @@
 import json
+from decimal import Decimal
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 import yaml
 
@@ -10,6 +12,7 @@ from recoverai.ml.evaluate import (
 )
 from recoverai.ml.features import build_features
 from recoverai.ml.split import temporal_split
+from recoverai.ml.threshold import select_threshold
 from recoverai.ml.train import build_pipeline
 
 DATA_PATH = Path("data/raw/payments.csv")
@@ -20,6 +23,8 @@ METRICS_PATH = Path("metrics/baseline.json")
 def main() -> None:
     params = yaml.safe_load(Path("params.yaml").read_text(encoding="utf-8"))
     dataframe = pd.read_csv(DATA_PATH)
+
+    intervention_cost = Decimal(str(params["economics"]["intervention_cost_inr"]))
 
     split = temporal_split(
         dataframe,
@@ -50,6 +55,15 @@ def main() -> None:
         validation_features.y.to_numpy(),
         validation_probabilities,
     )
+    thresholds = np.arange(0.30, 0.71, 0.05)
+
+    selection = select_threshold(
+        probabilities=validation_probabilities,
+        actual_recovery=split.validation["recovered"].to_numpy(),
+        payment_amounts=split.validation["amount_inr"].to_numpy(),
+        thresholds=thresholds,
+        intervention_cost_inr=intervention_cost,
+    )
 
     test_metrics = evaluate_predictions(
         test_features.y.to_numpy(),
@@ -59,7 +73,7 @@ def main() -> None:
     business_metrics = evaluate_business_impact(
         split.test,
         test_probabilities,
-        threshold=params["evaluation"]["threshold"],
+        threshold=selection.threshold,
     )
 
     metrics = {

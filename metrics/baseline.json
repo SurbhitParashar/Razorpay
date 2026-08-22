@@ -14,11 +14,11 @@
     "brier_score": 0.15892869844675034
   },
   "business": {
-    "intervention_rate": 0.5222672064777328,
-    "intervention_count": 2193.0,
-    "recovered_revenue_inr": 3344655.16,
-    "attempted_revenue_inr": 4401880.67,
-    "actual_recoveries": 1724.0,
-    "false_positives": 469.0
+    "intervention_rate": 0.7032626815908549,
+    "intervention_count": 2953.0,
+    "recovered_revenue_inr": 4013177.37,
+    "attempted_revenue_inr": 6135778.05,
+    "actual_recoveries": 2029.0,
+    "false_positives": 924.0
   }
 }
