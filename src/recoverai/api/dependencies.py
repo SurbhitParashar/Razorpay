@@ -8,6 +8,7 @@ from recoverai.recovery.executor import ExecutionConfig, RecoveryExecutor
 from recoverai.recovery.gateway import FakeRecoveryGateway
 from recoverai.recovery.policy import RecoveryPolicy
 from recoverai.service.service import RecoveryService
+from recoverai.state.sqlite import SQLiteRecoveryStateStore
 
 
 @lru_cache(maxsize=1)
@@ -26,6 +27,10 @@ def get_recovery_service() -> RecoveryService:
 
     gateway = FakeRecoveryGateway()
 
+    state_store = SQLiteRecoveryStateStore(
+        settings.state_database_path,
+    )
+
     executor = RecoveryExecutor(
         gateway=gateway,
         config=ExecutionConfig(
@@ -33,6 +38,7 @@ def get_recovery_service() -> RecoveryService:
             max_recovery_amount_inr=settings.max_recovery_amount_inr,
             dry_run=settings.dry_run,
         ),
+        state_store=state_store,
     )
 
     agent = RecoveryAgent(

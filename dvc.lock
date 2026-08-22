@@ -18,8 +18,8 @@ stages:
       nfiles: 10
     - path: src/recoverai/recovery
       hash: md5
-      md5: 51c02ea00d467ebf2cd307720027859f.dir
-      size: 18223
+      md5: c40c8b5c66d1a80d7ced462a7cfa5c2b.dir
+      size: 20210
       nfiles: 12
     params:
       params.yaml:
