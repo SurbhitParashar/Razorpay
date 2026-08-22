@@ -1,0 +1,39 @@
+schema: '2.0'
+stages:
+  train_baseline:
+    cmd: uv run python scripts/train_baseline.py
+    deps:
+    - path: data/raw/payments.csv
+      hash: md5
+      md5: 2b81287b46d9ae7a553e3d8d3dba8d18
+      size: 10439984
+    - path: scripts/train_baseline.py
+      hash: md5
+      md5: 17b14ab6901b609bc6dcc1767a61b170
+      size: 2216
+    - path: src/recoverai/ml
+      hash: md5
+      md5: 269105529443a02de43cf69f4356194a.dir
+      size: 14365
+      nfiles: 8
+    params:
+      params.yaml:
+        evaluation:
+          threshold: 0.5
+        model:
+          max_iter: 1000
+          class_weight: balanced
+          random_state: 42
+        seed: 42
+        split:
+          train_end: '2026-09-30'
+          validation_end: '2026-11-30'
+    outs:
+    - path: metrics/baseline.json
+      hash: md5
+      md5: bde0a9da85e48a98243b0760b95c3b78
+      size: 665
+    - path: models/recovery_baseline.joblib
+      hash: md5
+      md5: 85592c321842c85a22bcb856e4000bec
+      size: 5834

@@ -1,0 +1,13 @@
+seed: 42
+
+split:
+  train_end: "2026-09-30"
+  validation_end: "2026-11-30"
+
+model:
+  max_iter: 1000
+  class_weight: "balanced"
+  random_state: 42
+
+evaluation:
+  threshold: 0.5

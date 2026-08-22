@@ -1,0 +1,24 @@
+{
+  "validation": {
+    "precision": 0.7731492501785289,
+    "recall": 0.7532467532467533,
+    "pr_auc": 0.8234991436940322,
+    "roc_auc": 0.8318739096724171,
+    "brier_score": 0.166507380566687
+  },
+  "test": {
+    "precision": 0.7861377108983129,
+    "recall": 0.7772768259693418,
+    "pr_auc": 0.8380615173725243,
+    "roc_auc": 0.8446064938830522,
+    "brier_score": 0.15892869844675034
+  },
+  "business": {
+    "intervention_rate": 0.5222672064777328,
+    "intervention_count": 2193.0,
+    "recovered_revenue_inr": 3344655.16,
+    "attempted_revenue_inr": 4401880.67,
+    "actual_recoveries": 1724.0,
+    "false_positives": 469.0
+  }
+}
