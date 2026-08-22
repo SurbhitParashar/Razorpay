@@ -1,8 +1,14 @@
 from __future__ import annotations
 
 from recoverai.agent.orchestrator import RecoveryAgent
+from recoverai.metrics.recovery import calculate_recovery_metrics
 from recoverai.recovery.models import RecoveryAction
+from recoverai.recovery.outcome import (
+    RecoveryOutcome,
+    RecoveryOutcomeStatus,
+)
 from recoverai.service.schemas import (
+    RecoveryMetricsResponseSchema,
     RecoveryOutcomeRequestSchema,
     RecoveryOutcomeResponseSchema,
     RecoveryRequestSchema,
@@ -55,4 +61,30 @@ class RecoveryService:
             status=outcome.status,
             recovered_amount_inr=outcome.recovered_amount_inr,
             reason=outcome.reason,
+        )
+
+    def get_recovery_metrics(self) -> RecoveryMetricsResponseSchema:
+        if self.agent.executor.state_store is None:
+            outcomes = []
+        else:
+            stored_outcomes = self.agent.executor.state_store.list_recovery_outcomes()
+
+            outcomes = [
+                RecoveryOutcome(
+                    payment_id=outcome.payment_id,
+                    status=RecoveryOutcomeStatus(outcome.status),
+                    recovered_amount_inr=outcome.recovered_amount_inr,
+                    reason=outcome.reason,
+                )
+                for outcome in stored_outcomes
+            ]
+
+        metrics = calculate_recovery_metrics(outcomes)
+
+        return RecoveryMetricsResponseSchema(
+            attempted_count=metrics.attempted_count,
+            successful_recovery_count=metrics.successful_recovery_count,
+            failed_recovery_count=metrics.failed_recovery_count,
+            recovered_revenue_inr=metrics.recovered_revenue_inr,
+            recovery_rate=metrics.recovery_rate,
         )

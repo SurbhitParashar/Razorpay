@@ -221,3 +221,32 @@ def test_recovery_outcome_endpoint_rejects_invalid_status(
     )
 
     assert response.status_code == 422
+
+
+def test_recovery_metrics_endpoint(
+    client: TestClient,
+) -> None:
+    payment_id = "pay_metrics_001"
+
+    outcome_response = client.post(
+        "/v1/recovery-outcomes",
+        json={
+            "payment_id": payment_id,
+            "status": "paid",
+            "recovered_amount_inr": "1500.00",
+            "reason": "Customer completed payment.",
+        },
+    )
+
+    assert outcome_response.status_code == 200
+
+    response = client.get("/v1/recovery-metrics")
+
+    assert response.status_code == 200
+
+    body = response.json()
+
+    assert body["attempted_count"] >= 1
+    assert body["successful_recovery_count"] >= 1
+    assert Decimal(body["recovered_revenue_inr"]) >= Decimal("1500.00")
+    assert body["recovery_rate"] > 0

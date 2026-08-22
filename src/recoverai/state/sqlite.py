@@ -225,3 +225,29 @@ class SQLiteRecoveryStateStore:
                     outcome.reason,
                 ),
             )
+
+    def list_recovery_outcomes(self) -> list[StoredRecoveryOutcome]:
+        with self._connect() as connection:
+            rows = connection.execute(
+                """
+                SELECT
+                    payment_id,
+                    idempotency_key,
+                    status,
+                    recovered_amount_inr,
+                    reason
+                FROM recovery_outcomes
+                ORDER BY rowid
+                """
+            ).fetchall()
+
+        return [
+            StoredRecoveryOutcome(
+                payment_id=row[0],
+                idempotency_key=row[1],
+                status=row[2],
+                recovered_amount_inr=Decimal(row[3]),
+                reason=row[4],
+            )
+            for row in rows
+        ]

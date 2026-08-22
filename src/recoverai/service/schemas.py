@@ -45,3 +45,13 @@ class RecoveryOutcomeResponseSchema(BaseModel):
     status: RecoveryOutcomeStatus
     recovered_amount_inr: Decimal = Field(ge=0)
     reason: str
+
+
+class RecoveryMetricsResponseSchema(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    attempted_count: int
+    successful_recovery_count: int
+    failed_recovery_count: int
+    recovered_revenue_inr: Decimal
+    recovery_rate: float
